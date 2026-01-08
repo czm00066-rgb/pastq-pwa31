@@ -31,13 +31,13 @@ let state = loadState();
 // =========================
 // DOM 要素
 // =========================
-const elYear       = document.getElementById("yearFilter");
-const elExam       = document.getElementById("examFilter");
-const elSort       = document.getElementById("sortMode");
-const elOnly       = document.getElementById("onlyChecked");
-const elWrong      = document.getElementById("onlyWrong");
-const elRandomWrong= document.getElementById("randomWrong");
-const elList       = document.getElementById("list");
+const elYear        = document.getElementById("yearFilter");
+const elExam        = document.getElementById("examFilter");
+const elSort        = document.getElementById("sortMode");
+const elOnly        = document.getElementById("onlyChecked");
+const elWrong       = document.getElementById("onlyWrong");
+const elRandomWrong = document.getElementById("randomWrong");
+const elList        = document.getElementById("list");
 
 // =========================
 // ヘルパー
@@ -139,7 +139,7 @@ function render() {
 // カードHTML
 // =========================
 function cardHTML(q) {
-  const s = state[q.id] || {};
+  const s     = state[q.id] || {};
   const score = getScore(q.id);
 
   // answers & explanations 取得
@@ -175,20 +175,20 @@ function cardHTML(q) {
   return `
   <section class="card" id="card-${q.id}">
     <div class="qrow" data-toggle="${q.id}">
-      <div class="qtext">
+      <div class="meta-row">
         <div class="meta">
           【第${q.exam}回 / 第${q.no}問 / ${q.year}】
           <span class="badge">チェック合計：${score}</span>
         </div>
-        <div class="question">${escapeHTML(q.question)}</div>
-        ${choicesHtml ? `<div class="choices">${choicesHtml}</div>` : ""}
+        <div class="checks" data-stop>
+          <input type="checkbox" data-check="a" data-id="${q.id}" ${s.a ? "checked" : ""}>
+          <input type="checkbox" data-check="b" data-id="${q.id}" ${s.b ? "checked" : ""}>
+          <input type="checkbox" data-check="c" data-id="${q.id}" ${s.c ? "checked" : ""}>
+        </div>
       </div>
 
-      <div class="checks" data-stop>
-        <input type="checkbox" data-check="a" data-id="${q.id}" ${s.a ? "checked" : ""}>
-        <input type="checkbox" data-check="b" data-id="${q.id}" ${s.b ? "checked" : ""}>
-        <input type="checkbox" data-check="c" data-id="${q.id}" ${s.c ? "checked" : ""}>
-      </div>
+      <div class="question">${escapeHTML(q.question)}</div>
+      ${choicesHtml ? `<div class="choices">${choicesHtml}</div>` : ""}
     </div>
 
     <div class="detail" id="detail-${q.id}" hidden>
@@ -239,7 +239,7 @@ function bindCard(q) {
 
   // ---- タップで答え＆解説の開閉＋正解ハイライト ----
   card.querySelector("[data-toggle]").addEventListener("click", (e) => {
-    // 右上チェック欄は除外
+    // 右上3つのチェック欄は除外
     if (e.target.closest("[data-stop]")) return;
 
     const exMap = window.EXPLANATIONS || {};
@@ -256,7 +256,6 @@ function bindCard(q) {
       // 開くとき：正解を赤字に
       detail.hidden = false;
 
-      // 正解ハイライト
       if (correctIndex !== null && choiceTexts[correctIndex]) {
         choiceTexts[correctIndex].classList.add("correct");
       }
@@ -277,7 +276,7 @@ function bindCard(q) {
       }
 
     } else {
-      // 閉じるとき：チェックと色をリセット
+      // 閉じるとき：選択肢チェックと色をリセット
       detail.hidden = true;
 
       choiceTexts.forEach(t => t.classList.remove("correct"));
@@ -289,7 +288,7 @@ function bindCard(q) {
     }
   });
 
-  // ---- 3つの自由チェックボックス（復習用） ----
+  // ---- 右上3つの自由チェックボックス（復習用） ----
   card.querySelectorAll(".checks input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", (e) => {
       const id  = e.target.dataset.id;
@@ -303,6 +302,39 @@ function bindCard(q) {
 }
 
 // =========================
+// ランダム：間違いだけから1問選ぶ
+// =========================
+function jumpRandomWrong() {
+  const wrongItems = window.QUESTIONS.filter(q => {
+    const s = state[q.id] || {};
+    return !!s.wrong;
+  });
+
+  if (!wrongItems.length) {
+    alert("まだ「間違い」と判定された問題がありません。");
+    return;
+  }
+
+  const pick = wrongItems[Math.floor(Math.random() * wrongItems.length)];
+
+  // その問題が必ず一覧に出るよう、フィルタを合わせる
+  if (pick.year) elYear.value = String(pick.year);
+  if (pick.exam) elExam.value = String(pick.exam);
+  elOnly.checked  = false;
+  elWrong.checked = true;
+
+  render();
+
+  const card = document.getElementById(`card-${pick.id}`);
+  if (card) {
+    card.scrollIntoView({ behavior: "smooth", block: "start" });
+    // 自動で開いて答え・解説も出す
+    const toggle = card.querySelector("[data-toggle]");
+    if (toggle) toggle.click();
+  }
+}
+
+// =========================
 // イベント
 // =========================
 elYear.addEventListener("change", render);
@@ -311,47 +343,9 @@ elSort.addEventListener("change", render);
 elOnly.addEventListener("change", render);
 elWrong.addEventListener("change", render);
 
-// 「間違いだけランダム」
-elRandomWrong.addEventListener("click", () => {
-  const yearVal = elYear.value || "ALL";
-  const examVal = elExam.value || "ALL";
-
-  let items = window.QUESTIONS.slice();
-
-  // 年度・回で絞り込み（他のフィルタは無視してOK）
-  if (yearVal !== "ALL") {
-    const y = Number(yearVal);
-    items = items.filter(q => q.year === y);
-  }
-  if (examVal !== "ALL") {
-    const e = Number(examVal);
-    items = items.filter(q => q.exam === e);
-  }
-
-  // 間違いフラグ付きだけ
-  items = items.filter(q => {
-    const s = state[q.id];
-    return s && s.wrong;
-  });
-
-  if (items.length === 0) {
-    alert("「間違い」にチェックが付いた問題がありません。");
-    return;
-  }
-
-  const picked = items[Math.floor(Math.random() * items.length)];
-  const card = document.getElementById(`card-${picked.id}`);
-  if (!card) return;
-
-  // スクロールして、閉じていたら開く
-  card.scrollIntoView({ behavior: "smooth", block: "start" });
-
-  const header = card.querySelector("[data-toggle]");
-  const detail = document.getElementById(`detail-${picked.id}`);
-  if (header && detail && detail.hidden) {
-    header.click();
-  }
-});
+if (elRandomWrong) {
+  elRandomWrong.addEventListener("click", jumpRandomWrong);
+}
 
 // =========================
 // 初期処理
