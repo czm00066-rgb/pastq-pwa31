@@ -12,7 +12,7 @@
       margin:0;
       background:#f6f6f6;
       color:#111;
-      font-size:16px; /* ベースアップ */
+      font-size:16px;
     }
     header{
       position:sticky;
@@ -46,19 +46,12 @@
       font-size:12px;
       color:#666;
     }
-    select,button{
+    select{
       font-size:14px;
       padding:6px 8px;
       border:1px solid #ccc;
       border-radius:10px;
       background:#fff;
-    }
-    button{
-      cursor:pointer;
-    }
-    .filter-row{
-      display:flex;
-      gap:6px;
     }
     .chip{
       display:flex;
@@ -75,6 +68,12 @@
       width:16px;
       height:16px;
     }
+    .progress-text{
+      font-size:13px;
+      color:#444;
+      padding:2px 4px 0;
+      min-height:1.2em;
+    }
 
     main{
       padding:12px;
@@ -90,7 +89,6 @@
     .qrow{
       padding:12px;
     }
-    /* メタ情報＋右上３つの自由チェックを同じ行に */
     .meta-row{
       display:flex;
       justify-content:space-between;
@@ -164,9 +162,6 @@
     .muted{
       color:#666;
     }
-    .danger{
-      color:#b00020;
-    }
   </style>
 </head>
 <body>
@@ -191,22 +186,16 @@
           </select>
         </div>
         <div class="control-box">
-          <div class="control-label">ランダム</div>
-          <button id="randomWrong">間違いだけランダム</button>
+          <div class="control-label">フィルタ</div>
+          <label class="chip">
+            <input id="onlyChecked" type="checkbox">
+            チェックありだけ
+          </label>
         </div>
       </div>
 
-      <!-- チェック系 2つを横並び -->
-      <div class="filter-row">
-        <label class="chip">
-          <input id="onlyChecked" type="checkbox">
-          チェックありだけ
-        </label>
-        <label class="chip">
-          <input id="onlyWrong" type="checkbox">
-          間違いだけ
-        </label>
-      </div>
+      <!-- 正答率メータ -->
+      <div id="progress" class="progress-text"></div>
     </div>
   </header>
 
