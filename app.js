@@ -38,6 +38,8 @@ const elOnly   = document.getElementById("onlyChecked");
 const elWrong  = document.getElementById("onlyWrong");
 const elReset  = document.getElementById("reset");
 const elList   = document.getElementById("list");
+const elStats  = document.getElementById("stats");
+const elRandomWrong = document.getElementById("randomWrong");
 
 // =========================
 // ヘルパー
@@ -82,6 +84,70 @@ function renderFilters() {
   elExam.innerHTML =
     `<option value="ALL">第○回：すべて</option>` +
     exams.map(e => `<option value="${e}">第${e}回のみ</option>`).join("");
+}
+
+// =========================
+// 正答率・進捗メーター更新
+// =========================
+function updateStats() {
+  if (!elStats) return;
+
+  const qs = window.QUESTIONS || [];
+  const totalAll = qs.length;
+  let correctAll = 0;
+
+  const perExam = {}; // exam -> {total, correct}
+
+  const exMap = window.EXPLANATIONS || {};
+
+  qs.forEach(q => {
+    const exam = q.exam;
+    if (!perExam[exam]) {
+      perExam[exam] = { total: 0, correct: 0 };
+    }
+    perExam[exam].total++;
+
+    const s = state[q.id];
+    if (!s || typeof s.sel !== "number") return; // 未解答
+
+    const ex = exMap[q.id] || {};
+    const ansStr = (ex.answer !== undefined && ex.answer !== null) ? String(ex.answer) : "";
+    const num = parseInt(ansStr, 10);
+    const correctIndex = (!isNaN(num)) ? (num - 1) : null;
+    if (correctIndex === null) return;
+
+    const isCorrect = (s.sel === correctIndex);
+    if (isCorrect) {
+      perExam[exam].correct++;
+      correctAll++;
+    }
+  });
+
+  // 対象回（選択されていればそれ、なければ最大回）
+  const examVal = elExam.value || "ALL";
+  let targetExam;
+  if (examVal !== "ALL") {
+    targetExam = Number(examVal);
+  } else {
+    const examNums = Object.keys(perExam).map(Number);
+    targetExam = examNums.length ? Math.max(...examNums) : null;
+  }
+
+  let lineExam = "";
+  if (targetExam != null && perExam[targetExam]) {
+    const d = perExam[targetExam];
+    const rate = d.total ? Math.round((d.correct / d.total) * 1000) / 10 : 0;
+    lineExam = `第${targetExam}回：${d.correct}/${d.total}問正解（正答率${rate}%）`;
+  } else {
+    lineExam = `第―回：0/0問正解（正答率0%）`;
+  }
+
+  const rateAll = totalAll ? Math.round((correctAll / totalAll) * 1000) / 10 : 0;
+  const lineAll = `全体：${correctAll}/${totalAll}問正解（正答率${rateAll}%）`;
+
+  elStats.innerHTML =
+    `<div class="stats-line">${lineExam}</div>` +
+    `<div class="stats-line">${lineAll}</div>`;
 }
 
 // =========================
@@ -133,6 +199,9 @@ function render() {
 
   // イベント付与
   items.forEach(q => bindCard(q));
+
+  // 正答率更新
+  updateStats();
 }
 
 // =========================
@@ -234,6 +303,7 @@ function bindCard(q) {
       state[id] = state[id] || { a:false, b:false, c:false, sel:null, wrong:false };
       state[id].sel = checked ? idx : null;
       saveState(state);
+      updateStats();
     });
   });
 
@@ -274,6 +344,7 @@ function bindCard(q) {
       if (selectedIdx !== null && correctIndex !== null) {
         state[q.id].wrong = (selectedIdx !== correctIndex);
         saveState(state);
+        updateStats();
       }
 
     } else {
@@ -286,6 +357,7 @@ function bindCard(q) {
       state[q.id] = state[q.id] || { a:false, b:false, c:false, sel:null, wrong:false };
       state[q.id].sel = null;
       saveState(state);
+      updateStats();
     }
   });
 
@@ -297,7 +369,7 @@ function bindCard(q) {
       state[id] = state[id] || { a:false, b:false, c:false, sel:null, wrong:false };
       state[id][key] = e.target.checked;
       saveState(state);
-      render(); // スコア＆並び順を更新
+      render(); // スコア＆並び順を更新（正答率も再計算される）
     });
   });
 }
@@ -312,11 +384,47 @@ elReset.addEventListener("click", () => {
   render();
 });
 
-elYear.addEventListener("change", render);
-elExam.addEventListener("change", render);
-elSort.addEventListener("change", render);
-elOnly.addEventListener("change", render);
-elWrong.addEventListener("change", render);
+// フィルタ関連
+elYear.addEventListener("change", () => {
+  render();
+});
+elExam.addEventListener("change", () => {
+  render();
+});
+elSort.addEventListener("change", () => {
+  render();
+});
+elOnly.addEventListener("change", () => {
+  render();
+});
+elWrong.addEventListener("change", () => {
+  render();
+});
+
+// 「間違いだけランダム」
+if (elRandomWrong) {
+  elRandomWrong.addEventListener("click", () => {
+    const wrongQs = (window.QUESTIONS || []).filter(q => {
+      const s = state[q.id];
+      return s && s.wrong;
+    });
+
+    if (!wrongQs.length) {
+      alert("「間違い」と記録されている問題がありません。");
+      return;
+    }
+
+    const picked = wrongQs[Math.floor(Math.random() * wrongQs.length)];
+
+    // 現在のフィルタ状態のまま一覧を再描画してから、そのカードへスクロール
+    render();
+
+    const card = document.getElementById(`card-${picked.id}`);
+    if (card) {
+      card.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+  });
+}
 
 // =========================
 // 初期処理
