@@ -3,7 +3,7 @@
 // =========================
 const STORAGE_KEY = "pastq_state_v1";
 
-// 回ごとの公式解説ページURL（必要なければ消してOK）
+// 回ごとの公式解説ページURL（お好みで利用）
 const EXPLAIN_URLS = {
   30: "https://careerconsultant-study.com/category/pastquestions/30/",
   29: "https://careerconsultant-study.com/category/pastquestions/29/",
@@ -31,12 +31,12 @@ let state = loadState();
 // =========================
 // DOM 要素
 // =========================
-const elYear   = document.getElementById("yearFilter");
-const elExam   = document.getElementById("examFilter");
-const elSort   = document.getElementById("sortMode");
-const elOnly   = document.getElementById("onlyChecked");
-const elReset  = document.getElementById("reset");
-const elList   = document.getElementById("list");
+const elYear  = document.getElementById("yearFilter");
+const elExam  = document.getElementById("examFilter");
+const elSort  = document.getElementById("sortMode");
+const elOnly  = document.getElementById("onlyChecked");
+const elReset = document.getElementById("reset");
+const elList  = document.getElementById("list");
 
 // =========================
 // ヘルパー
@@ -87,9 +87,9 @@ function renderFilters() {
 // 一覧描画
 // =========================
 function render() {
-  const yearVal = elYear.value || "ALL";
-  const examVal = elExam.value || "ALL";
-  const sortMode = elSort.value || "no";
+  const yearVal    = elYear.value || "ALL";
+  const examVal    = elExam.value || "ALL";
+  const sortMode   = elSort.value || "no";
   const onlyChecked = elOnly.checked;
 
   let items = window.QUESTIONS.slice();
