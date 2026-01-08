@@ -1,7 +1,7 @@
 // =========================
 // 設定
 // =========================
-const STORAGE_KEY = "pastq_state_v1";
+const STORAGE_KEY = "pastq_state_v2";
 
 // 回ごとの公式解説ページURL（お好みで利用）
 const EXPLAIN_URLS = {
@@ -25,18 +25,19 @@ function saveState(state) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 }
 
-// { [id]: { a: boolean, b: boolean, c: boolean } }
+// { [id]: { a:bool, b:bool, c:bool, sel:number|null, wrong:bool } }
 let state = loadState();
 
 // =========================
 // DOM 要素
 // =========================
-const elYear  = document.getElementById("yearFilter");
-const elExam  = document.getElementById("examFilter");
-const elSort  = document.getElementById("sortMode");
-const elOnly  = document.getElementById("onlyChecked");
-const elReset = document.getElementById("reset");
-const elList  = document.getElementById("list");
+const elYear   = document.getElementById("yearFilter");
+const elExam   = document.getElementById("examFilter");
+const elSort   = document.getElementById("sortMode");
+const elOnly   = document.getElementById("onlyChecked");
+const elWrong  = document.getElementById("onlyWrong");
+const elReset  = document.getElementById("reset");
+const elList   = document.getElementById("list");
 
 // =========================
 // ヘルパー
@@ -87,10 +88,11 @@ function renderFilters() {
 // 一覧描画
 // =========================
 function render() {
-  const yearVal    = elYear.value || "ALL";
-  const examVal    = elExam.value || "ALL";
-  const sortMode   = elSort.value || "no";
+  const yearVal     = elYear.value || "ALL";
+  const examVal     = elExam.value || "ALL";
+  const sortMode    = elSort.value || "no";
   const onlyChecked = elOnly.checked;
+  const onlyWrong   = elWrong.checked;
 
   let items = window.QUESTIONS.slice();
 
@@ -105,6 +107,12 @@ function render() {
   }
   if (onlyChecked) {
     items = items.filter(q => getScore(q.id) > 0);
+  }
+  if (onlyWrong) {
+    items = items.filter(q => {
+      const s = state[q.id] || {};
+      return !!s.wrong;
+    });
   }
 
   // 並び替え
@@ -144,12 +152,20 @@ function cardHTML(q) {
     ? String(ex.explanation)
     : "（未登録）";
 
+  const selectedIndex = (typeof s.sel === "number") ? s.sel : null;
+
   const choicesHtml = (q.choices || []).map((c, idx) => {
     const label = ["①","②","③","④"][idx] || `${idx + 1}.`;
+    const checkedAttr = (selectedIndex === idx) ? "checked" : "";
     return `
       <div class="choice-item">
-        <div>${label}</div>
-        <div>${escapeHTML(c)}</div>
+        <input type="checkbox"
+               class="choice-check"
+               data-id="${q.id}"
+               data-index="${idx}"
+               ${checkedAttr}>
+        <div class="choice-label">${label}</div>
+        <div class="choice-text">${escapeHTML(c)}</div>
       </div>
     `;
   }).join("");
@@ -169,9 +185,9 @@ function cardHTML(q) {
       </div>
 
       <div class="checks" data-stop>
-        <label><input type="checkbox" data-check="a" data-id="${q.id}" ${s.a ? "checked" : ""}>✓1</label>
-        <label><input type="checkbox" data-check="b" data-id="${q.id}" ${s.b ? "checked" : ""}>✓2</label>
-        <label><input type="checkbox" data-check="c" data-id="${q.id}" ${s.c ? "checked" : ""}>✓3</label>
+        <input type="checkbox" data-check="a" data-id="${q.id}" ${s.a ? "checked" : ""}>
+        <input type="checkbox" data-check="b" data-id="${q.id}" ${s.b ? "checked" : ""}>
+        <input type="checkbox" data-check="c" data-id="${q.id}" ${s.c ? "checked" : ""}>
       </div>
     </div>
 
@@ -200,18 +216,85 @@ function bindCard(q) {
   const card   = document.getElementById(`card-${q.id}`);
   const detail = document.getElementById(`detail-${q.id}`);
 
-  // タップで答え＆解説の開閉（チェック欄は除外）
-  card.querySelector("[data-toggle]").addEventListener("click", (e) => {
-    if (e.target.closest("[data-stop]")) return;
-    detail.hidden = !detail.hidden;
+  const choiceChecks = card.querySelectorAll(".choice-check");
+  const choiceTexts  = card.querySelectorAll(".choice-text");
+
+  // ---- 選択肢のチェック（1つだけ選ばれるようにする） ----
+  choiceChecks.forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const id  = e.target.dataset.id;
+      const idx = Number(e.target.dataset.index);
+
+      // 1つだけにする（実質ラジオボタンの動き）
+      choiceChecks.forEach(other => {
+        if (other !== cb) other.checked = false;
+      });
+
+      const checked = cb.checked;
+      state[id] = state[id] || { a:false, b:false, c:false, sel:null, wrong:false };
+      state[id].sel = checked ? idx : null;
+      saveState(state);
+    });
   });
 
-  // チェックボックスの変更
-  card.querySelectorAll("input[type=checkbox]").forEach(cb => {
+  // ---- タップで答え＆解説の開閉＋正解ハイライト ----
+  card.querySelector("[data-toggle]").addEventListener("click", (e) => {
+    // チェック欄は除外
+    if (e.target.closest("[data-stop]")) return;
+
+    const exMap = window.EXPLANATIONS || {};
+    const ex    = exMap[q.id] || {};
+    const ans   = (ex.answer !== undefined && ex.answer !== null)
+      ? String(ex.answer)
+      : "";
+    const num   = parseInt(ans, 10);
+    const correctIndex = (!isNaN(num)) ? (num - 1) : null;
+
+    const willOpen = detail.hidden;
+
+    if (willOpen) {
+      // 開くとき：正解を赤字に
+      detail.hidden = false;
+
+      // 正解ハイライト
+      if (correctIndex !== null && choiceTexts[correctIndex]) {
+        choiceTexts[correctIndex].classList.add("correct");
+      }
+
+      // 解いた結果（正誤）を記録
+      let selectedIdx = null;
+      choiceChecks.forEach(cb => {
+        if (cb.checked) {
+          selectedIdx = Number(cb.dataset.index);
+        }
+      });
+
+      state[q.id] = state[q.id] || { a:false, b:false, c:false, sel:null, wrong:false };
+
+      if (selectedIdx !== null && correctIndex !== null) {
+        state[q.id].wrong = (selectedIdx !== correctIndex);
+        saveState(state);
+      }
+
+    } else {
+      // 閉じるとき：チェックと色をリセット
+      detail.hidden = true;
+
+      choiceTexts.forEach(t => t.classList.remove("correct"));
+      choiceChecks.forEach(cb => { cb.checked = false; });
+
+      state[q.id] = state[q.id] || { a:false, b:false, c:false, sel:null, wrong:false };
+      state[q.id].sel = null;
+      saveState(state);
+    }
+  });
+
+  // ---- 3つの自由チェックボックス（復習用） ----
+  card.querySelectorAll(".checks input[type=checkbox]").forEach(cb => {
     cb.addEventListener("change", (e) => {
       const id  = e.target.dataset.id;
       const key = e.target.dataset.check; // a / b / c
-      state[id] = state[id] || { a:false, b:false, c:false };
+      state[id] = state[id] || { a:false, b:false, c:false, sel:null, wrong:false };
       state[id][key] = e.target.checked;
       saveState(state);
       render(); // スコア＆並び順を更新
@@ -233,6 +316,7 @@ elYear.addEventListener("change", render);
 elExam.addEventListener("change", render);
 elSort.addEventListener("change", render);
 elOnly.addEventListener("change", render);
+elWrong.addEventListener("change", render);
 
 // =========================
 // 初期処理
