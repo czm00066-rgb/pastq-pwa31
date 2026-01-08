@@ -6,14 +6,156 @@
   <title>過去問タップ学習</title>
   <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#111111">
+  <style>
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic",sans-serif;
+      margin:0;
+      background:#f6f6f6;
+      color:#111;
+    }
+    header{
+      position:sticky;
+      top:0;
+      background:#fff;
+      border-bottom:1px solid #ddd;
+      padding:12px 12px 10px;
+      z-index:5;
+    }
+    h1{
+      font-size:18px;
+      margin:0 0 10px;
+    }
+    .controls{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    select,label,button{
+      font-size:14px;
+    }
+    select,button{
+      padding:8px 10px;
+      border:1px solid #ccc;
+      border-radius:10px;
+      background:#fff;
+    }
+    .chip{
+      display:flex;
+      align-items:center;
+      gap:6px;
+      padding:8px 10px;
+      border:1px solid:#ccc;
+      border-radius:10px;
+      background:#fff;
+    }
+    main{
+      padding:12px;
+    }
+    .card{
+      background:#fff;
+      border:1px solid #ddd;
+      border-radius:14px;
+      margin:10px 0;
+      overflow:hidden;
+      box-shadow:0 1px 1px rgba(0,0,0,0.03);
+    }
+    .qrow{
+      display:flex;
+      gap:10px;
+      padding:12px;
+      align-items:flex-start;
+    }
+    .qtext{
+      flex:1;
+    }
+    .meta{
+      font-size:12px;
+      color:#666;
+      margin-bottom:6px;
+    }
+    .question{
+      font-size:15px;
+      line-height:1.4;
+    }
+    .choices{
+      margin-top:6px;
+      font-size:14px;
+      line-height:1.4;
+    }
+    .choice-item{
+      display:flex;
+      gap:6px;
+    }
+    .checks{
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    }
+    .checks label{
+      font-size:11px;
+      color:#444;
+      display:flex;
+      align-items:center;
+      gap:4px;
+    }
+    .checks input{
+      width:18px;
+      height:18px;
+    }
+    .badge{
+      font-size:12px;
+      color:#fff;
+      background:#111;
+      border-radius:10px;
+      padding:2px 8px;
+      white-space:nowrap;
+    }
+    .detail{
+      border-top:1px solid #eee;
+      padding:12px;
+      background:#fafafa;
+      font-size:13px;
+    }
+    .detail h3{
+      font-size:13px;
+      margin:0 0 6px;
+      color:#333;
+    }
+    .detail p{
+      margin:0 0 10px;
+      white-space:pre-wrap;
+      line-height:1.35;
+    }
+    .muted{
+      color:#666;
+    }
+    .danger{
+      color:#b00020;
+    }
+  </style>
 </head>
 <body>
   <header>
     <h1>過去問タップ学習</h1>
+    <div class="controls">
+      <select id="yearFilter"></select>
+      <select id="examFilter"></select>
+      <select id="sortMode">
+        <option value="no">並び：回→番号</option>
+        <option value="score">並び：チェック多い順</option>
+      </select>
+      <label class="chip">
+        <input id="onlyChecked" type="checkbox">
+        チェックありだけ
+      </label>
+      <button id="reset">チェック全リセット</button>
+    </div>
   </header>
+
   <main>
     <div id="list"></div>
   </main>
+
   <script src="questions.js"></script>
   <script src="app.js"></script>
 </body>
