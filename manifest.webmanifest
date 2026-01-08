@@ -1,0 +1,9 @@
+{
+  "name": "過去問タップ学習",
+  "short_name": "過去問",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#111111",
+  "icons": []
+}
