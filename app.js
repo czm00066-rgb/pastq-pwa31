@@ -3,7 +3,7 @@
 // =========================
 const STORAGE_KEY = "pastq_state_v2";
 
-// 回ごとの公式解説ページURL（お好みで利用）
+// 回ごとの公式解説ページURL（今は使っていないが残しておく）
 const EXPLAIN_URLS = {
   30: "https://careerconsultant-study.com/category/pastquestions/30/",
   29: "https://careerconsultant-study.com/category/pastquestions/29/",
@@ -246,8 +246,6 @@ function cardHTML(q) {
     `;
   }).join("");
 
-  const explainLink = EXPLAIN_URLS[q.exam];
-
   return `
   <section class="card" id="card-${q.id}">
     <div class="qrow" data-toggle="${q.id}">
@@ -273,14 +271,6 @@ function cardHTML(q) {
 
       <h3>解説</h3>
       <p>${escapeHTML(exp)}</p>
-
-      ${explainLink ? `
-        <p class="muted">
-          もっと詳しい公式解説：
-          <a href="${escapeHTML(explainLink)}" target="_blank" rel="noopener">
-            第${q.exam}回 解説ページ
-          </a>
-        </p>` : ""}
     </div>
   </section>`;
 }
