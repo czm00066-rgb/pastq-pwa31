@@ -12,6 +12,7 @@
       margin:0;
       background:#f6f6f6;
       color:#111;
+      font-size:16px; /* ベースアップ */
     }
     header{
       position:sticky;
@@ -22,7 +23,7 @@
       z-index:5;
     }
     h1{
-      font-size:18px;
+      font-size:20px;
       margin:0 0 10px;
     }
     .controls{
@@ -31,7 +32,7 @@
       flex-wrap:wrap;
     }
     select,label,button{
-      font-size:14px;
+      font-size:15px;
     }
     select,button{
       padding:8px 10px;
@@ -69,41 +70,47 @@
       flex:1;
     }
     .meta{
-      font-size:12px;
+      font-size:14px;
       color:#666;
       margin-bottom:6px;
     }
     .question{
-      font-size:15px;
+      font-size:17px;
       line-height:1.4;
     }
     .choices{
       margin-top:6px;
-      font-size:14px;
+      font-size:16px;
       line-height:1.4;
     }
     .choice-item{
       display:flex;
+      align-items:flex-start;
       gap:6px;
+      margin-top:4px;
+    }
+    .choice-item input.choice-check{
+      margin-top:3px;
+    }
+    .choice-label{
+      width:1.5em;
+    }
+    .choice-text.correct{
+      color:#c00;
+      font-weight:600;
     }
     .checks{
       display:flex;
-      flex-direction:column;
-      gap:4px;
-    }
-    .checks label{
-      font-size:11px;
-      color:#444;
-      display:flex;
-      align-items:center;
-      gap:4px;
+      flex-direction:row;   /* 横並びで◻◻◻ */
+      gap:6px;
+      margin-left:8px;
     }
     .checks input{
-      width:18px;
-      height:18px;
+      width:20px;
+      height:20px;
     }
     .badge{
-      font-size:12px;
+      font-size:13px;
       color:#fff;
       background:#111;
       border-radius:10px;
@@ -111,13 +118,13 @@
       white-space:nowrap;
     }
     .detail{
-      border-top:1px solid #eee;
+      border-top:1px solid:#eee;
       padding:12px;
       background:#fafafa;
-      font-size:13px;
+      font-size:15px;
     }
     .detail h3{
-      font-size:13px;
+      font-size:15px;
       margin:0 0 6px;
       color:#333;
     }
@@ -148,6 +155,10 @@
         <input id="onlyChecked" type="checkbox">
         チェックありだけ
       </label>
+      <label class="chip">
+        <input id="onlyWrong" type="checkbox">
+        間違いだけ
+      </label>
       <button id="reset">チェック全リセット</button>
     </div>
   </header>
@@ -156,6 +167,7 @@
     <div id="list"></div>
   </main>
 
+  <!-- 読み込み順が超重要：questions → explanations → app -->
   <script src="questions.js"></script>
   <script src="explanations.js"></script>
   <script src="app.js"></script>
