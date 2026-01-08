@@ -19,18 +19,30 @@
       top:0;
       background:#fff;
       border-bottom:1px solid #ddd;
-      padding:12px 12px 10px;
+      padding:10px 12px 8px;
       z-index:5;
     }
     h1{
       font-size:20px;
-      margin:0 0 10px;
+      margin:0 0 8px;
     }
+
+    /* --- ヘッダ内レイアウト --- */
     .controls{
       display:flex;
-      gap:8px;
-      flex-wrap:wrap;
+      flex-direction:column;
+      gap:6px;
     }
+    .controls-grid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0,1fr)); /* 横2×縦2 */
+      gap:8px;
+    }
+    .filter-row{
+      display:flex;
+      gap:8px;
+    }
+
     select,label,button{
       font-size:15px;
     }
@@ -39,16 +51,20 @@
       border:1px solid #ccc;
       border-radius:10px;
       background:#fff;
+      width:100%;
+      box-sizing:border-box;
     }
     .chip{
       display:flex;
       align-items:center;
       gap:6px;
-      padding:8px 10px;
+      padding:6px 10px;
       border:1px solid:#ccc;
       border-radius:10px;
       background:#fff;
+      flex:1;
     }
+
     main{
       padding:12px;
     }
@@ -59,16 +75,18 @@
       margin:10px 0;
       overflow:hidden;
       box-shadow:0 1px 1px rgba(0,0,0,0.03);
+      position:relative;
     }
+
+    /* --- 問題行レイアウト：テキストは横いっぱい --- */
     .qrow{
-      display:flex;
-      gap:10px;
       padding:12px;
-      align-items:flex-start;
+      position:relative; /* 右上チェックを絶対配置するため */
     }
     .qtext{
-      flex:1;
+      /* 幅制限なしで横いっぱい */
     }
+
     .meta{
       font-size:14px;
       color:#666;
@@ -99,16 +117,21 @@
       color:#c00;
       font-weight:600;
     }
+
+    /* --- 右上の ◻◻◻ --- */
     .checks{
+      position:absolute;
+      top:8px;
+      right:10px;
       display:flex;
-      flex-direction:row;   /* 横並びで◻◻◻ */
+      flex-direction:row;
       gap:6px;
-      margin-left:8px;
     }
     .checks input{
       width:20px;
       height:20px;
     }
+
     .badge{
       font-size:13px;
       color:#fff;
@@ -139,40 +162,39 @@
     .danger{
       color:#b00020;
     }
-    /* 正答率・進捗メーター表示用 */
-    .stats{
-      margin-top:8px;
-      font-size:14px;
-      color:#333;
-    }
-    .stats-line{
-      margin:2px 0;
-    }
   </style>
 </head>
 <body>
   <header>
     <h1>過去問タップ学習</h1>
+
+    <!-- コントロール類 -->
     <div class="controls">
-      <select id="yearFilter"></select>
-      <select id="examFilter"></select>
-      <select id="sortMode">
-        <option value="no">並び：回→番号</option>
-        <option value="score">並び：チェック多い順</option>
-      </select>
-      <label class="chip">
-        <input id="onlyChecked" type="checkbox">
-        チェックありだけ
-      </label>
-      <label class="chip">
-        <input id="onlyWrong" type="checkbox">
-        間違いだけ
-      </label>
-      <button id="randomWrong">間違いだけランダム</button>
-      <button id="reset">チェック全リセット</button>
+      <!-- 上：横2×縦2 グリッド -->
+      <div class="controls-grid">
+        <!-- 1段目 -->
+        <select id="yearFilter"></select>
+        <select id="examFilter"></select>
+        <!-- 2段目 -->
+        <select id="sortMode">
+          <option value="no">並び：回→番号</option>
+          <option value="score">並び：チェック多い順</option>
+        </select>
+        <button id="randomWrong">間違いだけランダム</button>
+      </div>
+
+      <!-- 下：チェックボックス 2つを横並び -->
+      <div class="filter-row">
+        <label class="chip">
+          <input id="onlyChecked" type="checkbox">
+          チェックありだけ
+        </label>
+        <label class="chip">
+          <input id="onlyWrong" type="checkbox">
+          間違いだけ
+        </label>
+      </div>
     </div>
-    <!-- 正答率・進捗メーター表示エリア -->
-    <div class="stats" id="stats"></div>
   </header>
 
   <main>
