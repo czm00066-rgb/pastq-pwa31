@@ -139,6 +139,15 @@
     .danger{
       color:#b00020;
     }
+    /* 正答率・進捗メーター表示用 */
+    .stats{
+      margin-top:8px;
+      font-size:14px;
+      color:#333;
+    }
+    .stats-line{
+      margin:2px 0;
+    }
   </style>
 </head>
 <body>
@@ -159,8 +168,11 @@
         <input id="onlyWrong" type="checkbox">
         間違いだけ
       </label>
+      <button id="randomWrong">間違いだけランダム</button>
       <button id="reset">チェック全リセット</button>
     </div>
+    <!-- 正答率・進捗メーター表示エリア -->
+    <div class="stats" id="stats"></div>
   </header>
 
   <main>
