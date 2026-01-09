@@ -905,6 +905,9 @@ https://www.career-cc.org/files/rinrikoryo20240101.pdf
   }
 };
 
+// 第29回 学科試験 問1〜問50 の回答＆解説
+
+window.EXPLANATIONS = {
 "29-01": {
     answer: "2",
     explanation: `第29回　問01
