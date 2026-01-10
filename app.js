@@ -37,6 +37,7 @@ const elSort     = document.getElementById("sortMode");
 const elOnly     = document.getElementById("onlyChecked");
 const elList     = document.getElementById("list");
 const elProgress = document.getElementById("progress");
+const elReset    = document.getElementById("reset-answers"); // ←追加
 
 // =========================
 // ヘルパー
@@ -380,6 +381,21 @@ elYear.addEventListener("change", render);
 elExam.addEventListener("change", render);
 elSort.addEventListener("change", render);
 elOnly.addEventListener("change", render);
+if (elReset) {
+  elReset.addEventListener("click", resetAllAnswers); 
+}
+
+// =========================
+// 全回答リセット
+// =========================
+function resetAllAnswers() {
+  // 状態を空にして保存
+  state = {};
+  saveState(state);
+
+  // 一覧を描画し直し（チェックも正答率も全部クリア）
+  render();
+}
 
 // =========================
 // 初期処理
