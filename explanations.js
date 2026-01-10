@@ -6,7 +6,9 @@ window.EXPLANATIONS = {
     answer: "4",
     explanation: `第30回　問1
 ｢令和6年版労働経済の分析｣(厚生労働省)で述べられた､無業者(在学生を除く)に関する問題です。
+
 参考：｢令和6年版労働経済の分析｣(厚生労働省)
+https://www.mhlw.go.jp/wp/hakusyo/roudou/24/dl/24-1.pdf
 
 1.×:就業希望のない無業者は､年齢に限らず総じて女性が多い｡(P148~149)
 
@@ -16,7 +18,8 @@ window.EXPLANATIONS = {
 
 4.〇:設問に関する説明として正しい｡(P150~151)
 
-参考：｢令和6年版労働経済の分析｣(厚生労働省)`
+参考：｢労働経済白書｣(厚生労働省)
+https://www.mhlw.go.jp/toukei_hakusho/hakusho/#title3`
   },
 
   "30-02": {
